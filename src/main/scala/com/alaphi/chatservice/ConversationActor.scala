@@ -2,7 +2,7 @@ package com.alaphi.chatservice
 
 import akka.actor.{Actor, ActorLogging, Props}
 
-case class Message(conversationKey: String, textMessage: String)
+case class TextMessage(conversationKey: String, textMessage: String)
 case class Event(conversationKey: String, textMessage: String)
 
 class ConversationActor extends Actor with ActorLogging {
