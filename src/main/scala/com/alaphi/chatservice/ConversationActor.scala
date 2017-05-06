@@ -3,32 +3,38 @@ package com.alaphi.chatservice
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.persistence.PersistentActor
 
-import scala.collection.mutable.{ListBuffer, MutableList}
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 
 case class TextMessage(conversationKey: String, body: String)
-case class MessageEvent(conversationKey: String, body: String)
+case class MessageEvent(conversationKey: String, conversationMsgSeq: Int, body: String)
+case class GetLatestChatter(conversationKey: String, numMsgs: Int)
+case class LatestChatter(conversationKey: String, latestMsgSeq: Int, latestChatter: List[String])
 
 class ConversationActor extends PersistentActor with ActorLogging {
 
   var latestChatter: ListBuffer[String] = ListBuffer()
-  val latestChatterLimit = 1000
+  var conversationMsgSeq = 0;
 
-  override def persistenceId: String = self.path.parent.name + "-" + self.path.name
+  val latestChatterLimit = 1000
 
   // passivate the entity when no activity
   context.setReceiveTimeout(2.minutes)
 
+  override def persistenceId: String = self.path.parent.name + "-" + self.path.name
+
+  override def receive = receiveCommand orElse receiveRecover orElse receiveRequest orElse Actor.emptyBehavior
+
   def updateState(event: MessageEvent): Unit = {
-    if (latestChatter.size >= latestChatterLimit)
-      latestChatter.remove(0)
+    if (latestChatter.size >= latestChatterLimit) latestChatter.remove(0)
 
     latestChatter ++ event.body
+    conversationMsgSeq += 1
   }
 
   val receiveCommand: Receive = {
     case msg: TextMessage =>
-      persistAll(List(MessageEvent(msg.conversationKey,msg.body))) {
+      persistAll(List(MessageEvent(msg.conversationKey, conversationMsgSeq, msg.body))) {
         updateState
         // Send output MessageEvent over Kafka here which is to be delivered to conversation members
       }
@@ -38,10 +44,13 @@ class ConversationActor extends PersistentActor with ActorLogging {
     case msgEvt: MessageEvent => updateState(msgEvt)
   }
 
+  val receiveRequest: Receive = {
+    case GetLatestChatter(conversationKey, numMsgs) =>
+      LatestChatter(conversationKey, conversationMsgSeq, latestChatter.toList.takeRight(numMsgs))
+  }
+
 }
 
 object ConversationActor {
-
   def props(): Props = Props(new ConversationActor)
-
 }
