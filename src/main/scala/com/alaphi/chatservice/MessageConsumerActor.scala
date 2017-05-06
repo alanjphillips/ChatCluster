@@ -10,9 +10,15 @@ import org.apache.kafka.common.serialization.{ByteArrayDeserializer, StringDeser
 
 import scala.concurrent.Future
 
+import io.circe._
+import io.circe.generic.semiauto._
+import io.circe.parser._
+
 class MessageConsumerActor(chatRegion : ActorRef) extends Actor with ActorLogging {
   implicit val system = context.system
   implicit val materialiser = ActorMaterializer()
+
+  implicit val textMessageDecoder: Decoder[TextMessage] = deriveDecoder[TextMessage]
 
   override def receive: Receive = Actor.emptyBehavior
 
@@ -26,9 +32,9 @@ class MessageConsumerActor(chatRegion : ActorRef) extends Actor with ActorLoggin
       Consumer.committableSource(consumerSettings, Subscriptions.topics("chat_messages"))
         .mapAsync(1) { msg =>
           log.info(s"Received message from kafka: $msg")
-          val cKey = ""
-          val text = ""
-          chatRegion ! TextMessage(cKey, text)
+          val tmJson: Json = parse(msg.record.value()).getOrElse(Json.Null)
+          val textMessage = tmJson.as[TextMessage]
+          chatRegion ! textMessage
           Future.successful(msg)
         }
         .mapAsync(1) { msg =>
