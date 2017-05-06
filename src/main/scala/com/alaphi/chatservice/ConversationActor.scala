@@ -46,7 +46,7 @@ class ConversationActor extends PersistentActor with ActorLogging {
 
   val receiveRequest: Receive = {
     case GetLatestChatter(conversationKey, numMsgs) =>
-      LatestChatter(conversationKey, conversationMsgSeq, latestChatter.toList.takeRight(numMsgs))
+      sender ! LatestChatter(conversationKey, conversationMsgSeq, latestChatter.toList.takeRight(numMsgs))
   }
 
 }
