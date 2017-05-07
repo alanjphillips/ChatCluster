@@ -11,7 +11,7 @@ case class MessageEvent(conversationKey: String, conversationMsgSeq: Int, body: 
 case class GetLatestChatter(conversationKey: String, numMsgs: Int)
 case class LatestChatter(conversationKey: String, latestMsgSeq: Int, latestChatter: List[String])
 
-class ConversationActor extends PersistentActor with ActorLogging {
+class ConversationActor(imForwarder: InstantMessageForwarder) extends PersistentActor with ActorLogging {
 
   var latestChatter: ListBuffer[String] = ListBuffer()
   var conversationMsgSeq = 0
@@ -34,9 +34,9 @@ class ConversationActor extends PersistentActor with ActorLogging {
 
   val receiveCommand: Receive = {
     case msg: TextMessage =>
-      persistAll(List(MessageEvent(msg.conversationKey, conversationMsgSeq, msg.body))) {
-        updateState
-        // Send output MessageEvent over Kafka here which is to be delivered to conversation members
+      persistAll(List(MessageEvent(msg.conversationKey, conversationMsgSeq, msg.body))) { mEvt =>
+        updateState(mEvt)
+        imForwarder.deliverMessage(mEvt)
       }
   }
 
@@ -52,5 +52,5 @@ class ConversationActor extends PersistentActor with ActorLogging {
 }
 
 object ConversationActor {
-  def props(): Props = Props(new ConversationActor)
+  def props(imForwarder: InstantMessageForwarder): Props = Props(new ConversationActor(imForwarder))
 }
