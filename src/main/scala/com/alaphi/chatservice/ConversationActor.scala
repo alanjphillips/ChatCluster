@@ -14,7 +14,7 @@ case class LatestChatter(conversationKey: String, latestMsgSeq: Int, latestChatt
 class ConversationActor extends PersistentActor with ActorLogging {
 
   var latestChatter: ListBuffer[String] = ListBuffer()
-  var conversationMsgSeq = 0;
+  var conversationMsgSeq = 0
 
   val latestChatterLimit = 1000
 
