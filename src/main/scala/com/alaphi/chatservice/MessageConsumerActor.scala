@@ -3,20 +3,18 @@ package com.alaphi.chatservice
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.kafka.scaladsl.Consumer
 import akka.kafka.{ConsumerSettings, Subscriptions}
-import akka.stream.ActorMaterializer
+import akka.stream.{ActorMaterializer, Materializer}
 import akka.stream.scaladsl.Sink
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, StringDeserializer}
 
 import scala.concurrent.Future
-
 import io.circe._
 import io.circe.generic.semiauto._
 import io.circe.parser._
 
-class MessageConsumerActor(chatRegion : ActorRef) extends Actor with ActorLogging {
+class MessageConsumerActor(chatRegion : ActorRef)(implicit mat: Materializer) extends Actor with ActorLogging {
   implicit val system = context.system
-  implicit val materialiser = ActorMaterializer()
 
   implicit val textMessageDecoder: Decoder[TextMessage] = deriveDecoder[TextMessage]
 
@@ -46,7 +44,7 @@ class MessageConsumerActor(chatRegion : ActorRef) extends Actor with ActorLoggin
 }
 
 object MessageConsumerActor {
-   def props(chatRegion : ActorRef) : Props = {
+   def props(chatRegion : ActorRef)(implicit mat: Materializer) : Props = {
      Props(new MessageConsumerActor(chatRegion))
    }
 }
