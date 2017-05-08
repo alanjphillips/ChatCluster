@@ -8,7 +8,7 @@ object Boot extends App {
 
   val imForwarder = InstantMessageForwarder()
 
-  val chatRegion: ActorRef = ConversationShardingRegion.start(system, imForwarder, 10)
+  val chatRegion: ActorRef = ConversationShardingRegion.start(system, imForwarder, 30)
 
   val messageConsumer = system.actorOf(MessageConsumerActor.props(chatRegion))
 }

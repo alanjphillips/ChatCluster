@@ -15,7 +15,7 @@ import io.circe.generic.semiauto._
 import scala.concurrent.{ExecutionContext, Future}
 
 
-class InstantMessageForwarder(numPartitions: Int = 10)(implicit as: ActorSystem, mat: Materializer, ec: ExecutionContext) {
+class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, mat: Materializer, ec: ExecutionContext) {
 
   implicit val messageEventEncoder: Encoder[MessageEvent] = deriveEncoder[MessageEvent]
 

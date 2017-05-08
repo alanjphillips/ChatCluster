@@ -23,12 +23,13 @@ class ConversationActor(imForwarder: InstantMessageForwarder) extends Persistent
 
   override def persistenceId: String = self.path.parent.name + "-" + self.path.name
 
-  override def receiveCommand: Receive = command orElse request orElse Actor.emptyBehavior
+  override def receiveCommand: Receive = command orElse request orElse Actor.ignoringBehavior
 
-  override def receiveRecover: Receive = recover orElse Actor.emptyBehavior
+  override def receiveRecover: Receive = recover orElse Actor.ignoringBehavior
 
   def updateState(event: MessageEvent): Unit = {
-    if (latestChatter.size >= latestChatterLimit) latestChatter.remove(0)
+    if (latestChatter.size >= latestChatterLimit)
+      latestChatter.remove(0)
 
     latestChatter ++ event.body
     conversationMsgSeq += 1
