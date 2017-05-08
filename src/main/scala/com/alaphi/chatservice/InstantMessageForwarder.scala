@@ -18,6 +18,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, mat: Materializer, ec: ExecutionContext) {
 
   implicit val messageEventEncoder: Encoder[MessageEvent] = deriveEncoder[MessageEvent]
+  implicit val latestChatterEncoder: Encoder[LatestChatter] = deriveEncoder[LatestChatter]
 
   val producerSettings = ProducerSettings(as, new ByteArraySerializer, new StringSerializer)
     .withBootstrapServers("kafka-1:9092,kafka-2:9093,kafka-3:9094")
@@ -28,8 +29,8 @@ class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, 
     val done = Source.single(message)
       .map { msg =>
         val partition = msg.conversationKey.hashCode % numPartitions
-        val encodedJson = msg.asJson.noSpaces
-        new ProducerRecord[Array[Byte], String]("conversation_user_destination", partition, null, encodedJson)
+        val messageEventJson = msg.asJson.noSpaces
+        new ProducerRecord[Array[Byte], String]("conversation_user_destination", partition, null, messageEventJson)
       }
       .runWith(Producer.plainSink(producerSettings, kafkaProducer))
 
@@ -40,8 +41,8 @@ class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, 
     val done = Source.single(chatMessages)
       .map { msg =>
         val partition = msg.conversationKey.hashCode % numPartitions
-        val encodedJson = msg.asJson.noSpaces
-        new ProducerRecord[Array[Byte], String]("conversation_user_latest", partition, null, encodedJson)
+        val latestChatterJson = msg.asJson.noSpaces
+        new ProducerRecord[Array[Byte], String]("conversation_user_latest", partition, null, latestChatterJson)
       }
       .runWith(Producer.plainSink(producerSettings, kafkaProducer))
 
@@ -51,5 +52,5 @@ class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, 
 }
 
 object InstantMessageForwarder {
-  def apply()(implicit as: ActorSystem, mat: Materializer, ec: ExecutionContext): InstantMessageForwarder = new InstantMessageForwarder()
+  def apply(numPartitions: Int)(implicit as: ActorSystem, mat: Materializer, ec: ExecutionContext): InstantMessageForwarder = new InstantMessageForwarder(numPartitions)
 }

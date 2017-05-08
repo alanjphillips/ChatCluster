@@ -5,7 +5,7 @@ import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings, ShardReg
 
 object ConversationShardingRegion {
 
-  def start(system: ActorSystem, imForwarder: InstantMessageForwarder, numberOfShards: Int): ActorRef = {
+  def start(imForwarder: InstantMessageForwarder, numberOfShards: Int)(implicit system: ActorSystem): ActorRef = {
     ClusterSharding(system).start(
       typeName = "ConversationShardingRegion",
       entityProps = ConversationActor.props(imForwarder),
