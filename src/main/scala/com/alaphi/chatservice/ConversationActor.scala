@@ -23,7 +23,9 @@ class ConversationActor(imForwarder: InstantMessageForwarder) extends Persistent
 
   override def persistenceId: String = self.path.parent.name + "-" + self.path.name
 
-  override def receive = receiveCommand orElse receiveRecover orElse receiveRequest orElse Actor.emptyBehavior
+  override def receiveCommand: Receive = command orElse request orElse Actor.emptyBehavior
+
+  override def receiveRecover: Receive = recover orElse Actor.emptyBehavior
 
   def updateState(event: MessageEvent): Unit = {
     if (latestChatter.size >= latestChatterLimit) latestChatter.remove(0)
@@ -32,7 +34,7 @@ class ConversationActor(imForwarder: InstantMessageForwarder) extends Persistent
     conversationMsgSeq += 1
   }
 
-  val receiveCommand: Receive = {
+  val command: Receive = {
     case msg: TextMessage =>
       persistAll(List(MessageEvent(msg.conversationKey, conversationMsgSeq, msg.body))) { mEvt =>
         updateState(mEvt)
@@ -40,11 +42,11 @@ class ConversationActor(imForwarder: InstantMessageForwarder) extends Persistent
       }
   }
 
-  val receiveRecover: Receive = {
+  val recover: Receive = {
     case msgEvt: MessageEvent => updateState(msgEvt)
   }
 
-  val receiveRequest: Receive = {
+  val request: Receive = {
     case GetLatestChatter(conversationKey, numMsgs) =>
       sender ! LatestChatter(conversationKey, conversationMsgSeq, latestChatter.toList.takeRight(numMsgs))
   }
