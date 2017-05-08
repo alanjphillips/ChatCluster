@@ -49,7 +49,9 @@ class ConversationActor(imForwarder: InstantMessageForwarder) extends Persistent
 
   val request: Receive = {
     case GetLatestChatter(conversationKey, numMsgs) =>
-      sender ! LatestChatter(conversationKey, conversationMsgSeq, latestChatter.toList.takeRight(numMsgs))
+      imForwarder.deliverLatestChat(
+        LatestChatter(conversationKey, conversationMsgSeq, latestChatter.toList.takeRight(numMsgs))
+      )
   }
 
 }

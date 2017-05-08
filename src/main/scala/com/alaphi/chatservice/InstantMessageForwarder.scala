@@ -36,6 +36,18 @@ class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, 
     done
   }
 
+  def deliverLatestChat(chatMessages: LatestChatter) : Future[Done] = {
+    val done = Source.single(chatMessages)
+      .map { msg =>
+        val partition = msg.conversationKey.hashCode % numPartitions
+        val encodedJson = msg.asJson.noSpaces
+        new ProducerRecord[Array[Byte], String]("conversation_user_latest", partition, null, encodedJson)
+      }
+      .runWith(Producer.plainSink(producerSettings, kafkaProducer))
+
+    done
+  }
+
 }
 
 object InstantMessageForwarder {
