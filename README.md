@@ -35,10 +35,12 @@ Or with client microservice to send to Kafka:
 
 Scale up some nodes:
 
-> docker-compose scale cassandra-node=2 chatservice-node=5
+> docker-compose scale cassandra-node=2 chatservice-node=2
 
 4) Connect to bash shell on kafka-1 host, then run:
 
-> kafka-topics.sh --zookeeper zookeeper:2181 --create --topic chat_messages --partitions 6 --replication-factor 3
+> kafka-topics.sh --zookeeper zookeeper:2181 --create --topic conversation_user_instant --partitions 3 --replication-factor 3
 
-This will create 6 Topic partitions that are spread amongst the 3 Kafka nodes. Each partition leader will have 2 replicas
+> kafka-topics.sh --zookeeper zookeeper:2181 --create --topic conversation_user_instant --partitions 3 --replication-factor 3
+
+This will create 3 Topic partitions that are spread amongst the 3 Kafka nodes. Each partition leader will have 2 replicas
