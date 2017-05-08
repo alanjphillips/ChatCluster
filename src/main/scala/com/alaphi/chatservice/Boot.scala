@@ -9,9 +9,9 @@ object Boot extends App {
   implicit val materializer = ActorMaterializer()
   implicit val executionContext = system.dispatcher
 
-  val imForwarder = InstantMessageForwarder(3)
+  val imForwarder = InstantMessageForwarder(numPartitions = 3)
 
-  val chatRegion: ActorRef = ConversationShardingRegion.start(imForwarder, 30)
+  val chatRegion: ActorRef = ConversationShardingRegion.start(imForwarder, numberOfShards = 30)
 
   val messageConsumer = system.actorOf(MessageConsumerActor.props(chatRegion))
 }
