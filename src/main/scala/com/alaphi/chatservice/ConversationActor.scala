@@ -32,7 +32,7 @@ class ConversationActor(imForwarder: InstantMessageForwarder) extends Persistent
     if (latestChatter.size >= latestChatterLimit)
       latestChatter.remove(0)
 
-    latestChatter ++ event.body
+    latestChatter.append((event.sender, event.body))
     conversationMsgSeq += 1
   }
 
