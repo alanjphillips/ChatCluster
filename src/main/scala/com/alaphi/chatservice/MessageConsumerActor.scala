@@ -23,11 +23,11 @@ class MessageConsumerActor(chatRegion : ActorRef)(implicit mat: Materializer) ex
   override def preStart(): Unit = {
     val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new StringDeserializer)
       .withBootstrapServers("kafka-1:9092,kafka-2:9093,kafka-3:9094")
-      .withGroupId("group1")
+      .withGroupId("chat-group")
       .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
     val done =
-      Consumer.committableSource(consumerSettings, Subscriptions.topics("chat_messages"))
+      Consumer.committableSource(consumerSettings, Subscriptions.topics("instant_message_in"))
         .mapAsync(1) { msg =>
           log.info(s"Received message from kafka: $msg")
           val tmJson: Json = parse(msg.record.value()).getOrElse(Json.Null)

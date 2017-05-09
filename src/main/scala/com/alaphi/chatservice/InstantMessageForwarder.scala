@@ -30,7 +30,7 @@ class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, 
       .map { msg =>
         val partition = msg.conversationKey.hashCode % numPartitions
         val messageEventJson = msg.asJson.noSpaces
-        new ProducerRecord[Array[Byte], String]("conversation_user_instant", partition, null, messageEventJson)
+        new ProducerRecord[Array[Byte], String]("instant_message_out", partition, null, messageEventJson)
       }
       .runWith(Producer.plainSink(producerSettings, kafkaProducer))
 
@@ -42,7 +42,7 @@ class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, 
       .map { msg =>
         val partition = msg.conversationKey.hashCode % numPartitions
         val latestChatterJson = msg.asJson.noSpaces
-        new ProducerRecord[Array[Byte], String]("conversation_user_latest", partition, null, latestChatterJson)
+        new ProducerRecord[Array[Byte], String]("latest_message_block", partition, null, latestChatterJson)
       }
       .runWith(Producer.plainSink(producerSettings, kafkaProducer))
 
