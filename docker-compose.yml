@@ -85,8 +85,8 @@ services:
       - zookeeper
 
   chatservice-seed-1:
-    image: chatservice:latest
-    command: "-Dakka.remote.netty.tcp.hostname=userservice-seed-1"
+    image: chatcluster:latest
+    command: "-Dakka.remote.netty.tcp.hostname=chatservice-seed-1"
     depends_on:
       - cassandra-seed-1
       - kafka-1
@@ -94,7 +94,7 @@ services:
       - kafka-3
 
   chatservice-node:
-    image: chatservice:latest
+    image: chatcluster:latest
     depends_on:
       - cassandra-seed-1
       - kafka-1
