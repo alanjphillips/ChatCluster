@@ -29,7 +29,8 @@ class MessageConsumerActor(chatRegion : ActorRef)(implicit mat: Materializer) ex
         .mapAsync(1) { msg =>
           log.info(s"Received message from kafka: $msg")
           val tmJson: Json = parse(msg.record.value()).getOrElse(Json.Null)
-          val textMessage = tmJson.as[TextMessageCommand]
+          val textMessage = tmJson.as[TextMessageCommand].toOption.get
+          log.info(s"JSON as object: $textMessage")
           chatRegion ! textMessage
           Future.successful(msg)
         }
