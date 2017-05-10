@@ -32,7 +32,7 @@ class ConversationActor(imForwarder: InstantMessageForwarder) extends Persistent
   }
 
   val command: Receive = {
-    case msg: TextMessage =>
+    case msg: TextMessageCommand =>
       persistAll(List(MessageEvent(msg.conversationKey, msg.sender, msg.recipients, conversationMsgSeq, msg.body))) { mEvt =>
         updateState(mEvt)
         imForwarder.deliverMessage(mEvt)

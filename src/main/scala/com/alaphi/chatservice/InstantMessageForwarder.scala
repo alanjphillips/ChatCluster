@@ -8,17 +8,14 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{ByteArraySerializer, StringSerializer}
-import io.circe._
 import io.circe.syntax._
-import io.circe.generic.semiauto._
+
+import com.alaphi.chatservice.Message._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 
 class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, mat: Materializer, ec: ExecutionContext) {
-
-  implicit val messageEventEncoder: Encoder[MessageEvent] = deriveEncoder[MessageEvent]
-  implicit val latestChatterEncoder: Encoder[LatestChatter] = deriveEncoder[LatestChatter]
 
   val producerSettings = ProducerSettings(as, new ByteArraySerializer, new StringSerializer)
     .withBootstrapServers("kafka-1:9092,kafka-2:9093,kafka-3:9094")
