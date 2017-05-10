@@ -9,11 +9,9 @@ import akka.stream.scaladsl.Source
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{ByteArraySerializer, StringSerializer}
 import io.circe.syntax._
-
-import com.alaphi.chatservice.Message._
-
 import scala.concurrent.{ExecutionContext, Future}
 
+import com.alaphi.chatservice.Message._
 
 class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, mat: Materializer, ec: ExecutionContext) {
 
