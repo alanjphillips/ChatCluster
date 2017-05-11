@@ -12,8 +12,6 @@ val akkaVersion      = "2.4.17"
 val akkaHttpVersion  = "10.0.4"
 val akkaKafkaVersion = "0.14"
 val akkaPersistenceCassandraVersion = "0.23"
-val scalaLoggingVersion = "3.5.0"
-val logBackVersion   = "1.1.7"
 
 libraryDependencies ++= Seq(
   "org.typelevel"     %% "cats"                       % catsVersion,
@@ -27,9 +25,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-persistence"           % akkaVersion,
   "com.typesafe.akka" %% "akka-persistence-cassandra" % akkaPersistenceCassandraVersion,
   "com.typesafe.akka" %% "akka-http"                  % akkaHttpVersion,
-  "com.typesafe.akka" %% "akka-stream-kafka"          % akkaKafkaVersion,
-  "ch.qos.logback"    % "logback-classic"             % logBackVersion,
-  "com.typesafe.scala-logging" %% "scala-logging"     % scalaLoggingVersion
+  "com.typesafe.akka" %% "akka-stream-kafka"          % akkaKafkaVersion
 )
 
 packageName in Docker := "chatservice"

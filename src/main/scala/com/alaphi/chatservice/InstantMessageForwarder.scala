@@ -12,10 +12,8 @@ import io.circe.syntax._
 
 import scala.concurrent.{ExecutionContext, Future}
 import com.alaphi.chatservice.Message._
-import com.typesafe.scalalogging.LazyLogging
 
-class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, mat: Materializer, ec: ExecutionContext)
-  extends LazyLogging {
+class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, mat: Materializer, ec: ExecutionContext) {
 
   val producerSettings = ProducerSettings(as, new ByteArraySerializer, new StringSerializer)
     .withBootstrapServers("kafka-1:9092,kafka-2:9093,kafka-3:9094")
@@ -26,9 +24,7 @@ class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, 
     val done = Source.single(message)
       .map { msg =>
         val partition = msg.conversationKey.hashCode % numPartitions
-        logger.info(s"Message forwarded to partition: $partition")
         val messageEventJson = msg.asJson.noSpaces
-        logger.info(s"Message forwarded JSON: $messageEventJson")
         new ProducerRecord[Array[Byte], String]("instant_message_out", partition, null, messageEventJson)
       }
       .runWith(Producer.plainSink(producerSettings, kafkaProducer))
