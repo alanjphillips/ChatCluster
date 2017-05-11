@@ -13,5 +13,5 @@ object Boot extends App {
 
   val chatRegion: ActorRef = ConversationShardingRegion.start(imForwarder, numberOfShards = 30)
 
-  val messageConsumer = system.actorOf(MessageConsumerActor.props(chatRegion))
+  InstantMessageConsumer(chatRegion).start
 }

@@ -13,7 +13,7 @@ import io.circe.parser._
 
 import com.alaphi.chatservice.Message._
 
-class MessageConsumerActor(chatRegion : ActorRef)(implicit mat: Materializer) extends Actor with ActorLogging {
+class MessageConsumerActor(chatRegion: ActorRef)(implicit mat: Materializer) extends Actor with ActorLogging {
   implicit val system = context.system
 
   override def receive: Receive = Actor.emptyBehavior
@@ -41,7 +41,7 @@ class MessageConsumerActor(chatRegion : ActorRef)(implicit mat: Materializer) ex
 }
 
 object MessageConsumerActor {
-   def props(chatRegion : ActorRef)(implicit mat: Materializer) : Props = {
+   def props(chatRegion: ActorRef)(implicit mat: Materializer) : Props = {
      Props(new MessageConsumerActor(chatRegion))
    }
 }
