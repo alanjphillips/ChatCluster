@@ -23,7 +23,7 @@ class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, 
   def deliverMessage(message: MessageEvent) : Future[Done] = {
     val done = Source.single(message)
       .map { msg =>
-        val partition = msg.conversationKey.hashCode % numPartitions
+        val partition = math.abs(msg.conversationKey.hashCode) % numPartitions
         val messageEventJson = msg.asJson.noSpaces
         new ProducerRecord[Array[Byte], String]("instant_message_out", partition, null, messageEventJson)
       }
@@ -35,7 +35,7 @@ class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, 
   def deliverLatestChat(chatMessages: LatestChatter) : Future[Done] = {
     val done = Source.single(chatMessages)
       .map { msg =>
-        val partition = msg.conversationKey.hashCode % numPartitions
+        val partition = math.abs(msg.conversationKey.hashCode) % numPartitions
         val latestChatterJson = msg.asJson.noSpaces
         new ProducerRecord[Array[Byte], String]("latest_message_block", partition, null, latestChatterJson)
       }
