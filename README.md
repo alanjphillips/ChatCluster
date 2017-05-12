@@ -43,6 +43,8 @@ Scale up some nodes:
 
 > kafka-topics.sh --zookeeper zookeeper:2181 --create --topic instant_message_out --partitions 3 --replication-factor 3
 
-> kafka-topics.sh --zookeeper zookeeper:2181 --create --topic latest_message_block --partitions 3 --replication-factor 3
+> kafka-topics.sh --zookeeper zookeeper:2181 --create --topic latest_messages_request --partitions 3 --replication-factor 3
+
+> kafka-topics.sh --zookeeper zookeeper:2181 --create --topic latest_messages_block --partitions 3 --replication-factor 3
 
 This will create 3 Topic partitions that are spread amongst the 3 Kafka nodes. Each partition leader will have 2 replicas

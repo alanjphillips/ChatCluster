@@ -2,14 +2,14 @@ package com.alaphi.chatservice
 
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.persistence.PersistentActor
-import com.alaphi.chatservice.Message.SenderMsg
+import com.alaphi.chatservice.Message.MessageData
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 
 class ConversationActor(imForwarder: InstantMessageForwarder) extends PersistentActor with ActorLogging {
 
-  var latestChatter: ListBuffer[SenderMsg] = ListBuffer()
+  var latestChatter: ListBuffer[MessageData] = ListBuffer()
   var conversationMsgSeq = 0
 
   val latestChatterLimit = 1000
@@ -27,7 +27,7 @@ class ConversationActor(imForwarder: InstantMessageForwarder) extends Persistent
     if (latestChatter.size >= latestChatterLimit)
       latestChatter.remove(0)
 
-    latestChatter.append(new SenderMsg(event.sender, event.body))
+    latestChatter.append(new MessageData(event.sender, event.body, conversationMsgSeq))
     conversationMsgSeq += 1
   }
 
@@ -46,7 +46,7 @@ class ConversationActor(imForwarder: InstantMessageForwarder) extends Persistent
   val request: Receive = {
     case GetLatestChatter(conversationKey, numMsgs) =>
       imForwarder.deliverLatestChat(
-        LatestChatter(conversationKey, conversationMsgSeq, latestChatter.toList.takeRight(numMsgs))
+        LatestChatter(conversationKey, latestChatter.toList.takeRight(numMsgs))
       )
   }
 
