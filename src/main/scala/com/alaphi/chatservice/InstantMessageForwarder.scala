@@ -9,7 +9,6 @@ import akka.stream.scaladsl.Source
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{ByteArraySerializer, StringSerializer}
 import io.circe.syntax._
-
 import scala.concurrent.{ExecutionContext, Future}
 import com.alaphi.chatservice.Message._
 
@@ -20,32 +19,23 @@ class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, 
 
   val kafkaProducer = producerSettings.createKafkaProducer()
 
-  def deliverMessage(message: MessageEvent): Future[Done] = {
-    val done = Source.single(message)
+  def deliverMessage(message: MessageEvent): Future[Done] = send(message, "instant_message_out")
+
+  def deliverLatestChat(chatMessages: LatestChatter): Future[Done] = send(chatMessages, "latest_messages_block")
+
+  def send(event: Event, dest: String): Future[Done] =
+    Source.single(event)
       .map { msg =>
         val partition = math.abs(msg.conversationKey.hashCode) % numPartitions
-        val messageEventJson = msg.asJson.noSpaces
-        new ProducerRecord[Array[Byte], String]("instant_message_out", partition, null, messageEventJson)
+        val json = msg.asJson.noSpaces
+        new ProducerRecord[Array[Byte], String](dest, partition, null, json)
       }
       .runWith(Producer.plainSink(producerSettings, kafkaProducer))
-
-    done
-  }
-
-  def deliverLatestChat(chatMessages: LatestChatter): Future[Done] = {
-    val done = Source.single(chatMessages)
-      .map { msg =>
-        val partition = math.abs(msg.conversationKey.hashCode) % numPartitions
-        val latestChatterJson = msg.asJson.noSpaces
-        new ProducerRecord[Array[Byte], String]("latest_messages_block", partition, null, latestChatterJson)
-      }
-      .runWith(Producer.plainSink(producerSettings, kafkaProducer))
-
-    done
-  }
 
 }
 
 object InstantMessageForwarder {
-  def apply(numPartitions: Int)(implicit as: ActorSystem, mat: Materializer, ec: ExecutionContext): InstantMessageForwarder = new InstantMessageForwarder(numPartitions)
+  def apply(numPartitions: Int)
+           (implicit as: ActorSystem, mat: Materializer, ec: ExecutionContext)
+  : InstantMessageForwarder = new InstantMessageForwarder(numPartitions)
 }

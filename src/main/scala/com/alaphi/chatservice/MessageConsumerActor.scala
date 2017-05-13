@@ -7,7 +7,6 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, StringDeserializer}
-import scala.concurrent.Future
 import io.circe._
 import io.circe.parser._
 
