@@ -48,3 +48,58 @@ Scale up some nodes:
 > kafka-topics.sh --zookeeper zookeeper:2181 --create --topic latest_messages_block --partitions 3 --replication-factor 3
 
 This will create 3 Topic partitions that are spread amongst the 3 Kafka nodes. Each partition leader will have 2 replicas
+
+5) Send a chat message to Kafka partition 0 of `instant_message_in` topic using Kafka Tool or Cmd-line kafka producer: 
+
+```json
+{
+  "conversationKey": "abc123", 
+  "sender": "bob", 
+  "recipients": ["ann"], 
+  "body": "Hi there!"
+}
+```
+
+6) Then check out the Kafka partitions of `instant_message_out` topic, the following event should be there:
+
+```json
+{
+  "conversationKey": "abc123",
+  "sender": "bob",
+  "recipients": [
+    "ann"
+  ],
+  "conversationMsgSeq": 0,
+  "body": "Hi there!"
+}
+```
+
+7) Send a request for latest chat messages in a conversation to Kafka partition 0 of `latest_messages_request` topic:
+
+```json
+{
+  "conversationKey": "abc123",  
+  "numMsgs": 100
+}
+```
+
+8) Then checkout the Kafka partitions of `latest_messages_block` topic, the following event should be there:
+- an extra chat message that was sent in response is included below
+
+```json
+{
+  "conversationKey": "abc123",
+  "latestChatter": [
+    [
+      "bob",
+      "Hi there!",
+      0
+    ],
+    [
+      "ann",
+      "Hi there!",
+      1
+    ]
+  ]
+}
+```
