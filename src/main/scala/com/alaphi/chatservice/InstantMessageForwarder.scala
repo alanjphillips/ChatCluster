@@ -20,7 +20,7 @@ class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, 
 
   val kafkaProducer = producerSettings.createKafkaProducer()
 
-  def deliverMessage(message: MessageEvent) : Future[Done] = {
+  def deliverMessage(message: MessageEvent): Future[Done] = {
     val done = Source.single(message)
       .map { msg =>
         val partition = math.abs(msg.conversationKey.hashCode) % numPartitions
@@ -32,7 +32,7 @@ class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, 
     done
   }
 
-  def deliverLatestChat(chatMessages: LatestChatter) : Future[Done] = {
+  def deliverLatestChat(chatMessages: LatestChatter): Future[Done] = {
     val done = Source.single(chatMessages)
       .map { msg =>
         val partition = math.abs(msg.conversationKey.hashCode) % numPartitions

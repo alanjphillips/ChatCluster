@@ -24,18 +24,19 @@ class MessageConsumerActor(chatRegion: ActorRef)(implicit mat: Materializer) ext
       .withGroupId("chat-group")
       .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
-    val done =
-      Consumer.committableSource(consumerSettings, Subscriptions.topics("instant_message_in", "latest_messages_request"))
-        .mapAsync(1) { msg =>
-          val json: Json = parse(msg.record.value()).getOrElse(Json.Null)
-          val cmdE =  decode[Command](json.noSpaces)
-          cmdE map (cmd => chatRegion ! cmd)
-          Future.successful(msg)
-        }
-        .mapAsync(1) { msg =>
-          msg.committableOffset.commitScaladsl()
-        }
-        .runWith(Sink.ignore)
+    val topics = Subscriptions.topics("instant_message_in", "latest_messages_request")
+
+    Consumer.committableSource(consumerSettings, topics)
+      .map { msg =>
+        val json = parse(msg.record.value()).getOrElse(Json.Null).noSpaces
+        val cmdE = decode[Command](json)
+        cmdE map (cmd => chatRegion ! cmd)
+        msg
+      }
+      .mapAsync(1) { msg =>
+        msg.committableOffset.commitScaladsl()
+      }
+      .runWith(Sink.ignore)
   }
 
 }
