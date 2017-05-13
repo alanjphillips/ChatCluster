@@ -4,17 +4,25 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.kafka.ProducerSettings
 import akka.kafka.scaladsl.Producer
-import akka.stream.Materializer
+import akka.stream.{ActorMaterializer, ActorMaterializerSettings, Materializer, Supervision}
 import akka.stream.scaladsl.Source
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{ByteArraySerializer, StringSerializer}
 import io.circe.syntax._
+
 import scala.concurrent.{ExecutionContext, Future}
 import com.alaphi.chatservice.Message._
 
-class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, mat: Materializer, ec: ExecutionContext) {
+class InstantMessageForwarder(numPartitions: Int = 3)(implicit system: ActorSystem, ec: ExecutionContext) {
 
-  val producerSettings = ProducerSettings(as, new ByteArraySerializer, new StringSerializer)
+  val decider: Supervision.Decider = {
+    case _  => Supervision.Resume
+  }
+
+  implicit val materializer = ActorMaterializer(
+    ActorMaterializerSettings(system).withSupervisionStrategy(decider))
+
+  val producerSettings = ProducerSettings(system, new ByteArraySerializer, new StringSerializer)
     .withBootstrapServers("kafka-1:9092,kafka-2:9093,kafka-3:9094")
 
   val kafkaProducer = producerSettings.createKafkaProducer()
@@ -36,6 +44,6 @@ class InstantMessageForwarder(numPartitions: Int = 3)(implicit as: ActorSystem, 
 
 object InstantMessageForwarder {
   def apply(numPartitions: Int)
-           (implicit as: ActorSystem, mat: Materializer, ec: ExecutionContext)
+           (implicit system: ActorSystem, ec: ExecutionContext)
   : InstantMessageForwarder = new InstantMessageForwarder(numPartitions)
 }
