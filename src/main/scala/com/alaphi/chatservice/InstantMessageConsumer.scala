@@ -15,7 +15,7 @@ import com.alaphi.chatservice.Message._
 class InstantMessageConsumer(chatRegion: ActorRef)(implicit system: ActorSystem) {
 
   val decider: Supervision.Decider = {
-    case _  => Supervision.Resume
+    case _  => Supervision.Restart
   }
 
   implicit val materializer = ActorMaterializer(
