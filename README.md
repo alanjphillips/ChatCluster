@@ -29,10 +29,6 @@ Start up 'default' machine
 
 > docker-compose up -d --no-recreate
 
-Or with client microservice to send to Kafka:
-
-> docker-compose -f docker-compose-with-client.yml up -d --no-recreate
-
 Scale up some nodes:
 
 > docker-compose scale cassandra-node=2 chatservice-node=2
