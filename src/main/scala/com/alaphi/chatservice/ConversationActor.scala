@@ -1,6 +1,7 @@
 package com.alaphi.chatservice
 
-import akka.actor.{Actor, ActorLogging, Props}
+import akka.actor.{Actor, ActorLogging, PoisonPill, Props, ReceiveTimeout}
+import akka.cluster.sharding.ShardRegion.Passivate
 import akka.persistence.PersistentActor
 import com.alaphi.chatservice.Message.MessageData
 
@@ -19,7 +20,7 @@ class ConversationActor(imForwarder: InstantMessageForwarder) extends Persistent
 
   override def persistenceId: String = self.path.parent.name + "-" + self.path.name
 
-  override def receiveCommand: Receive = command orElse request orElse Actor.ignoringBehavior
+  override def receiveCommand: Receive = command orElse request orElse passivate orElse Actor.ignoringBehavior
 
   override def receiveRecover: Receive = recover orElse Actor.ignoringBehavior
 
@@ -48,6 +49,10 @@ class ConversationActor(imForwarder: InstantMessageForwarder) extends Persistent
       imForwarder.deliverLatestChat(
         LatestChatter(conversationKey, latestChatter.toList.takeRight(numMsgs))
       )
+  }
+
+  val passivate: Receive = {
+    case ReceiveTimeout => context.parent ! Passivate(PoisonPill)
   }
 
 }
