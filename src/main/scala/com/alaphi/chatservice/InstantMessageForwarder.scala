@@ -36,7 +36,7 @@ class InstantMessageForwarder(numPartitions: Int = 3)(implicit system: ActorSyst
       .map { msg =>
         val partition = math.abs(msg.conversationKey.hashCode) % numPartitions
         val json = msg.asJson.noSpaces
-        new ProducerRecord[Array[Byte], String](dest, partition, null, json)
+        new ProducerRecord[Array[Byte], String](dest, partition, null, json) // Refactor: use key to determine partition
       }
       .runWith(Producer.plainSink(producerSettings, kafkaProducer))
 
