@@ -7,9 +7,11 @@ object Boot extends App {
   implicit val system = ActorSystem("ChatService")
   implicit val executionContext = system.dispatcher
 
-  val imForwarder = InstantMessageForwarder(numPartitions = 3)
+  val imSender = KafkaPublisher("instant_message_out", numPartitions = 3)
 
-  val chatRegion: ActorRef = ConversationShardingRegion.start(imForwarder, numberOfShards = 30)
+  val blockSender = KafkaPublisher("latest_messages_block", numPartitions = 3)
+
+  val chatRegion: ActorRef = ConversationShardingRegion.start(imSender, blockSender, numberOfShards = 30)
 
   InstantMessageConsumer(chatRegion).start
 }

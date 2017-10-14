@@ -5,10 +5,10 @@ import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings, ShardReg
 
 object ConversationShardingRegion {
 
-  def start(imForwarder: InstantMessageForwarder, numberOfShards: Int)(implicit system: ActorSystem): ActorRef = {
+  def start(imSender: KafkaPublisher, blockSender: KafkaPublisher, numberOfShards: Int)(implicit system: ActorSystem): ActorRef = {
     ClusterSharding(system).start(
       typeName = "ConversationShardingRegion",
-      entityProps = ConversationActor.props(imForwarder),
+      entityProps = ConversationActor.props(imSender, blockSender),
       settings = ClusterShardingSettings(system),
       extractEntityId = idExtractor,
       extractShardId = shardResolver(numberOfShards))

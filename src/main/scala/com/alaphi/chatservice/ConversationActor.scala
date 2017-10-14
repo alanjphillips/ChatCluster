@@ -8,7 +8,7 @@ import com.alaphi.chatservice.Message.MessageData
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 
-class ConversationActor(imForwarder: InstantMessageForwarder) extends PersistentActor with ActorLogging {
+class ConversationActor(imSender: KafkaPublisher, blockSender: KafkaPublisher) extends PersistentActor with ActorLogging {
 
   var latestChatter: ListBuffer[MessageData] = ListBuffer()
   var conversationMsgSeq = 0
@@ -36,7 +36,7 @@ class ConversationActor(imForwarder: InstantMessageForwarder) extends Persistent
     case msg: TextMessageCommand =>
       persistAll(List(MessageEvent(msg.conversationKey, msg.sender, msg.recipients, conversationMsgSeq, msg.body))) { mEvt =>
         updateState(mEvt)
-        imForwarder.deliverMessage(mEvt)
+        imSender.send(mEvt)
       }
   }
 
@@ -46,7 +46,7 @@ class ConversationActor(imForwarder: InstantMessageForwarder) extends Persistent
 
   val request: Receive = {
     case GetLatestChatter(conversationKey, numMsgs) =>
-      imForwarder.deliverLatestChat(
+      blockSender.send(
         LatestChatter(conversationKey, latestChatter.toList.takeRight(numMsgs))
       )
   }
@@ -58,5 +58,5 @@ class ConversationActor(imForwarder: InstantMessageForwarder) extends Persistent
 }
 
 object ConversationActor {
-  def props(imForwarder: InstantMessageForwarder): Props = Props(new ConversationActor(imForwarder))
+  def props(imSender: KafkaPublisher, blockSender: KafkaPublisher): Props = Props(new ConversationActor(imSender, blockSender))
 }
