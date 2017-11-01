@@ -99,3 +99,24 @@ This will create 3 Topic partitions that are spread amongst the 3 Kafka nodes. E
   ]
 }
 ```
+
+Kafka Notes
+===========
+- Kafka Consumer Groups
+Kafka Consumers label themselves with a consumer group name, and each record published to a topic is delivered to one consumer instance within each subscribing consumer group. Consumer instances can be in separate processes or on separate machines.
+-> If all the consumer instances have the same consumer group, then the records will effectively be load balanced over the consumer instances.
+-> If all the consumer instances have different consumer groups, then each record will be broadcast to all the consumer processes.
+
+- According to Kafka docs, a partition can have just one consumer:
+"[a] topic is divided into a set of totally ordered partitions, each of which is consumed by exactly one consumer within each subscribing consumer group at any given time"
+
+- NB: From Kafka: The Definite Guide: "If we add more consumers to a single group with a single topic than we have partitions, some of the consumers will be idle and get no messages at all".
+
+- Consumers in a consumer group share ownership of the partitions in the topics they subscribe to. When we add a new consumer to the group, it starts consuming messages from partitions previously consumed by another consumer. The same thing happens when a consumer shuts down or crashes; it leaves the group, and the partitions it used to consume will be consumed by one of the remaining consumers. Reassignment of partitions to consumers also happen when the topics the consumer group is consuming are modified (e.g., if an administrator adds new partitions).
+
+- Aside: To achieve in-order processing of messages from a partition there is 1 consumer per partition. A topic can consist of one or more partitions, amongst which messages are distributed by a (partition) key. Remember: Kafka only provides a total order over messages within a partition, not between different partitions in a topic.
+Whenever the consumer calls poll(), it returns records written to Kafka that consumers in our group have not read yet.
+
+- Load balancing in Kafka
+Kafka achieves load balancing by distributing messaging across multiple partitions in a topic. The producer is responsible for choosing which partition to send a message to, for example key.hashCode() % numberOfPartitions
+This allows multiple consumers to pull data from these partitions
